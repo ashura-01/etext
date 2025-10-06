@@ -10,9 +10,12 @@ class HomeScreen extends StatelessWidget {
   final UserController uc = Get.find<UserController>();
   final AuthController auth = Get.find<AuthController>();
 
+  // Controller for search text
+  final RxString searchQuery = ''.obs;
+
   @override
   Widget build(BuildContext context) {
-    
+    // Load friend requests and friends when screen opens
     uc.fetchFriendRequests();
     uc.fetchFriends();
 
@@ -25,8 +28,8 @@ class HomeScreen extends StatelessWidget {
             return Stack(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  icon: const Icon(Icons.people),
+                  onPressed: () => _navigateTo('/requests'),
                 ),
                 if (requestCount > 0)
                   Positioned(
@@ -44,36 +47,64 @@ class HomeScreen extends StatelessWidget {
               ],
             );
           }),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await auth.logout();
-              Get.offAllNamed('/login');
-            },
-          )
+          // IconButton(
+          //   icon: const Icon(Icons.logout),
+          //   onPressed: () async {
+          //     await auth.logout();
+          //     Get.offAllNamed('/login');
+          //   },
+          // )
         ],
       ),
 
-      drawer: CustomDrawer(),
+      drawer: const CustomDrawer(),
 
-      body: Obx(() {
-        final friends = uc.friends;
-        if (friends.isEmpty) {
-          return const Center(child: Text('No friends connected yet'));
-        }
-        return ListView.builder(
-          itemCount: friends.length,
-          itemBuilder: (_, i) {
-            final friend = friends[i];
-            return ListTile(
-              leading: const Icon(Icons.person),
-              title: Text(friend.name),
-              subtitle: Text(friend.email),
-              onTap: () => Get.toNamed('/chat', arguments: friend),
-            );
-          },
-        );
-      }),
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              onChanged: (value) => searchQuery.value = value,
+              decoration: InputDecoration(
+                hintText: 'Search friends...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          // Friend List
+          Expanded(
+            child: Obx(() {
+              final friends = uc.friends
+                  .where((f) =>
+                      f.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+                      f.email.toLowerCase().contains(searchQuery.value.toLowerCase()))
+                  .toList();
+
+              if (friends.isEmpty) {
+                return const Center(child: Text('No friends found'));
+              }
+
+              return ListView.builder(
+                itemCount: friends.length,
+                itemBuilder: (_, i) {
+                  final friend = friends[i];
+                  return ListTile(
+                    leading: const Icon(Icons.person),
+                    title: Text(friend.name),
+                    subtitle: Text(friend.email),
+                    onTap: () => Get.toNamed('/chat', arguments: friend),
+                  );
+                },
+              );
+            }),
+          ),
+        ],
+      ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed('/search'),
@@ -81,5 +112,11 @@ class HomeScreen extends StatelessWidget {
         icon: const Icon(Icons.search),
       ),
     );
+  }
+
+
+    void _navigateTo(String routeName) {
+    Get.back();
+    Get.toNamed(routeName);
   }
 }

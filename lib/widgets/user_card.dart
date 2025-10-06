@@ -5,7 +5,7 @@ class UserCard extends StatelessWidget {
   final AppUser user;
   final VoidCallback? onTap;
 
-  const UserCard({required this.user, this.onTap, Key? key}) : super(key: key);
+  const UserCard({required this.user, this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
