@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "185474246383",
+    "project_id": "etext-85ef6",
+    "storage_bucket": "etext-85ef6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:185474246383:android:90e85743cafa0532181d1a",
+        "android_client_info": {
+          "package_name": "com.example.etext"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKjtZczXbGRMlwJsqKBmKXs0fA9DTCj1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
