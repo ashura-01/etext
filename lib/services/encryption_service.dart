@@ -65,7 +65,6 @@ class EncryptionService extends GetxService {
       final clear = await aes.decrypt(box, secretKey: secret);
       return utf8.decode(clear);
     } catch (e) {
-      print('Decryption failed: $e');
       return '[Decryption failed]';
     }
   }

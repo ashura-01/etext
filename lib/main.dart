@@ -1,6 +1,7 @@
 import 'package:etext/models/user_model.dart';
 import 'package:etext/screens/auth/my_account_screen.dart';
 import 'package:etext/screens/auth/settings.dart';
+import 'package:etext/screens/splash_screen.dart';
 import 'package:etext/screens/sub_screens/chat_screen.dart';
 import 'package:etext/screens/sub_screens/requests_screen.dart';
 import 'package:etext/screens/sub_screens/search_user_screen.dart';
@@ -49,12 +50,18 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: const Color.fromARGB(255, 142, 184, 255),
+          backgroundColor:  Color.fromARGB(255, 142, 184, 255),
           foregroundColor: Color.fromARGB(255, 0, 0, 0),
         ),
         // textTheme: const TextTheme(
         //   // bodyMedium: TextStyle(color: Colors.white), // Default text
         // ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor:  const Color.fromARGB(255, 142, 184, 255),
+            backgroundColor:  const Color.fromARGB(255, 30, 33, 37)
+          )
+        ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: const Color.fromARGB(255, 0, 0, 0),
@@ -65,7 +72,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/',
+      initialRoute: '/splash',
       getPages: [
         GetPage(name: '/', page: () => const AuthWrapper()),
         GetPage(name: '/login', page: () => LoginScreen()),
@@ -89,6 +96,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/account', page: () => MyAccountScreen()),
         GetPage(name: '/settings', page: () => SettingsScreen()),
         GetPage(name: '/requests', page: () => RequestsScreen()),
+        GetPage(name: '/splash', page: () => const SplashScreen()),
       ],
     );
   }

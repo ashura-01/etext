@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:nearby_connections/nearby_connections.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -67,7 +68,13 @@ class _BluMessengerState extends State<BluMessenger> {
       );
       setState(() => isAdvertising = true);
     } catch (e) {
-      print('Advertising Error: $e');
+      Get.snackbar(
+        'Error',
+        'try again',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -98,7 +105,13 @@ class _BluMessengerState extends State<BluMessenger> {
       );
       setState(() => isDiscovering = true);
     } catch (e) {
-      print('Discovery Error: $e');
+      Get.snackbar(
+        'Error',
+        'try again',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -143,7 +156,13 @@ class _BluMessengerState extends State<BluMessenger> {
         },
       );
     } catch (e) {
-      print('Connection Error: $e');
+      Get.snackbar(
+        'Error',
+        'try again',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -156,7 +175,13 @@ class _BluMessengerState extends State<BluMessenger> {
         );
         setState(() => messages.add("🔵 Me: $msg"));
       } catch (e) {
-        print('Send Message Error: $e');
+         Get.snackbar(
+        'Error',
+        'try again',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       }
     }
   }
@@ -218,7 +243,7 @@ class _BluMessengerState extends State<BluMessenger> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("War Mode"),
+        title:  Text("War Mode", style: TextStyle( color:Color.fromARGB(255, 212, 228, 255), fontWeight: FontWeight.bold)),
         backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         foregroundColor: Colors.white,
         actions: [
@@ -299,14 +324,14 @@ class _BluMessengerState extends State<BluMessenger> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration:  InputDecoration(
+                    decoration: InputDecoration(
                       hintText: "Enter message",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
-                         borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
                           color: const Color.fromARGB(255, 142, 184, 255),
                         ), // change this to any color
@@ -316,7 +341,7 @@ class _BluMessengerState extends State<BluMessenger> {
                     ),
                   ),
                 ),
-            const SizedBox(width: 8),
+                const SizedBox(width: 8),
 
                 CircleAvatar(
                   backgroundColor: const Color.fromARGB(255, 0, 131, 238),

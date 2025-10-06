@@ -95,9 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          SizedBox(height: 20),
-          Text("Chats: ", style: TextStyle(color: Colors.white, fontSize: 20)),
-          SizedBox(height: 30),
+          SizedBox(height: 40),
+          // Text("Chats: ", style: TextStyle(color: Colors.white, fontSize: 20)),
+          // SizedBox(height: 30),
           
           // 🧑‍🤝‍🧑 Friends List
           Expanded(
@@ -201,11 +201,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ? AppBar(
                 title: Text(
                   [
-                    'eText',
+                    'CipherChat',
                     'Requests',
                     'Offline Chat',
                     'Settings',
                   ][selectedIndex.value],
+                  style: TextStyle(fontWeight: FontWeight.bold,color: const Color.fromARGB(255, 212, 228, 255),),
                 ),
                 actions: [
                   PopupMenuButton<String>(
@@ -213,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       switch (value) {
                         case 'My Account':
                           Get.toNamed(
-                            '/my-account',
+                            '/account',
                           ); // replace with your account screen
                           break;
                         case 'Settings':
@@ -247,10 +248,9 @@ class _HomeScreenState extends State<HomeScreen> {
         body: _buildPage(selectedIndex.value),
 
         floatingActionButton: selectedIndex.value == 0
-            ? FloatingActionButton.extended(
+            ? FloatingActionButton(
                 onPressed: () => Get.toNamed('/search'),
-                label: const Text('Search Users'),
-                icon: const Icon(Icons.search),
+                child: const Icon(Icons.post_add_rounded,size: 30,),
               )
             : null,
 

@@ -173,4 +173,13 @@ class AuthController extends GetxController {
     firebaseUser.value = null;
     appUser.value = null;
   }
+
+
+   Future<void> sendPasswordReset(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      rethrow; // let the UI handle showing the error
+    }
+  }
 }

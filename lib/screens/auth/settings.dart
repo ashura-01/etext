@@ -6,60 +6,41 @@ class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key});
 
   final AuthController auth = Get.find<AuthController>();
+  final TextEditingController _emailController = TextEditingController();
 
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
+  final RxBool isSending = false.obs;
 
-  final RxBool isSendingOtp = false.obs;
-  final RxBool isVerifying = false.obs;
-
-  void sendOtp() async {
-    if (auth.firebaseUser.value == null) return;
-
-    try {
-      isSendingOtp.value = true;
-      await auth.firebaseUser.value!.sendEmailVerification();
-      Get.snackbar('OTP Sent', 'Check your email for the verification link.');
-    } catch (e) {
-      Get.snackbar('Error', e.toString());
-    } finally {
-      isSendingOtp.value = false;
-    }
-  }
-
-  void changePassword() async {
-    final otp = _otpController.text.trim();
-    final newPassword = _newPasswordController.text.trim();
-    if (otp.isEmpty || newPassword.isEmpty) {
-      Get.snackbar('Error', 'OTP and new password are required');
+  void sendPasswordReset() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      Get.snackbar('Error', 'Please enter your email.');
       return;
     }
 
-    // Here Firebase doesn't directly accept OTP for password reset unless using sendPasswordResetEmail.
-    // We assume user clicked the email verification link, so we update the password.
     try {
-      isVerifying.value = true;
-      final msg = await auth.changePassword(newPassword);
-      if (msg != null) {
-        Get.snackbar('Error', msg);
-      } else {
-        Get.snackbar('Success', 'Password changed successfully');
-        _newPasswordController.clear();
-        _otpController.clear();
-      }
+      isSending.value = true;
+      await auth.sendPasswordReset(email);
+      Get.snackbar(
+        'Email Sent',
+        'Check your inbox to reset your password.',
+        snackPosition: SnackPosition.BOTTOM,
+        
+      );
+      _emailController.clear();
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
-      isVerifying.value = false;
+      isSending.value = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final email = auth.appUser.value?.email ?? 'Your Email';
+    // Pre-fill email if user is logged in
+    _emailController.text = auth.appUser.value?.email ?? '';
 
     return Scaffold(
-      
+      appBar: AppBar(foregroundColor: Colors.white,),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -67,46 +48,29 @@ class SettingsScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.email),
               title: const Text('Email'),
-              subtitle: Text(email),
+              subtitle: Text(auth.appUser.value?.email ?? 'Your Email'),
             ),
             const SizedBox(height: 20),
             TextField(
-              controller: _newPasswordController,
-              obscureText: true,
+              controller: _emailController,
               decoration: const InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _otpController,
-              decoration: const InputDecoration(
-                labelText: 'OTP (Check Email)',
+                labelText: 'Enter email for password reset',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 20),
             Obx(() => ElevatedButton(
-                  onPressed: isSendingOtp.value ? null : sendOtp,
-                  child: isSendingOtp.value
+                  onPressed: isSending.value ? null : sendPasswordReset,
+                  child: isSending.value
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Text('Send OTP'),
-                )),
-            const SizedBox(height: 12),
-            Obx(() => ElevatedButton(
-                  onPressed: isVerifying.value ? null : changePassword,
-                  child: isVerifying.value
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text('Verify & Change Password'),
+                      : const Text('Send Password Reset Email'),
                 )),
           ],
         ),
