@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20), // smooth rounded corners
           child: Image.asset(
-            'logo.png',
+            'assets/logo.png',
             height: 300,
             width: 300,
             fit: BoxFit.contain,

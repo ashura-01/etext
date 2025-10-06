@@ -26,7 +26,7 @@ class LoginScreen extends StatelessWidget {
                   20,
                 ), // smooth rounded corners
                 child: Image.asset(
-                  'logo.png',
+                  'assets/logo.png',
                   height: 300,
                   width: 300,
                   fit: BoxFit.contain, 
@@ -34,7 +34,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 
               ),
-              Text("CipherText",style: TextStyle(fontSize: 30, color: const Color.fromARGB(255, 169, 238, 243)),),
+              Text("CipherChat",style: TextStyle(fontSize: 30, color: const Color.fromARGB(255, 169, 238, 243)),),
               const SizedBox(height: 32),
 
               // Email Field

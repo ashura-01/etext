@@ -6,13 +6,18 @@ import '../models/message_model.dart';
 import '../controllers/auth_controller.dart';
 import '../services/encryption_service.dart';
 import '../services/local_db.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+final FlutterLocalNotificationsPlugin _localNoti =
+    FlutterLocalNotificationsPlugin();
 
 class ChatController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthController authCtrl = Get.find<AuthController>();
   final EncryptionService enc = Get.put(EncryptionService());
 
-  final RxMap<String, RxList<MessageModel>> messages = <String, RxList<MessageModel>>{}.obs;
+  final RxMap<String, RxList<MessageModel>> messages =
+      <String, RxList<MessageModel>>{}.obs;
   final RxMap<String, RxString> lastMessages = <String, RxString>{}.obs;
   final Map<String, StreamSubscription<QuerySnapshot>> _chatSubscriptions = {};
 
@@ -71,48 +76,50 @@ class ChatController extends GetxController {
         .limit(limit)
         .snapshots()
         .listen((snapshot) async {
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        final docId = doc.id;
-        final senderId = data['senderId'] ?? '';
-        final receiverId = data['receiverId'] ?? '';
-        final cipherText = data['text'] ?? '';
-        final timestamp = data['timestamp'] ?? Timestamp.now();
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            final docId = doc.id;
+            final senderId = data['senderId'] ?? '';
+            final receiverId = data['receiverId'] ?? '';
+            final cipherText = data['text'] ?? '';
+            final timestamp = data['timestamp'] ?? Timestamp.now();
 
-        // Skip if message already exists in memory (avoids duplicates)
-        final existsInMemory = chatMessages.any((m) => m.docId == docId);
-        if (existsInMemory) continue;
+            // Skip if message already exists in memory (avoids duplicates)
+            final existsInMemory = chatMessages.any((m) => m.docId == docId);
+            if (existsInMemory) continue;
 
-        // Only decrypt & insert if it's **received message**
-        if (senderId != me.uid) {
-          String displayText;
-          try {
-            displayText = await enc.decrypt(cipherText, senderId);
-          } catch (_) {
-            displayText = '[Decryption failed]';
+            // Only decrypt & insert if it's **received message**
+            if (senderId != me.uid) {
+              String displayText;
+              try {
+                displayText = await enc.decrypt(cipherText, senderId);
+              } catch (_) {
+                displayText = '[Decryption failed]';
+              }
+
+              final msg = MessageModel(
+                docId: docId,
+                senderId: senderId,
+                receiverId: receiverId,
+                text: displayText,
+                timestamp: timestamp,
+              );
+
+              chatMessages.add(msg);
+              await LocalDb.insertMessage(msg);
+
+              showNewMessageNotification(senderId, displayText);
+            }
           }
 
-          final msg = MessageModel(
-            docId: docId,
-            senderId: senderId,
-            receiverId: receiverId,
-            text: displayText,
-            timestamp: timestamp,
-          );
+          // Sort messages by timestamp
+          chatMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-          chatMessages.add(msg);
-          await LocalDb.insertMessage(msg);
-        }
-      }
-
-      // Sort messages by timestamp
-      chatMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-      // Update last message
-      if (chatMessages.isNotEmpty) {
-        lastMsg.value = chatMessages.last.text;
-      }
-    });
+          // Update last message
+          if (chatMessages.isNotEmpty) {
+            lastMsg.value = chatMessages.last.text;
+          }
+        });
 
     _chatSubscriptions[id] = sub;
   }
@@ -206,35 +213,61 @@ class ChatController extends GetxController {
   }
 
   /// Clear all messages from local DB
-Future<void> clearAllLocalMessages() async {
-  await LocalDb.clearAllMessages();
-  for (final list in messages.values) {
-    list.clear();
-  }
-  for (final last in lastMessages.values) {
-    last.value = '';
-  }
-}
-
-/// Clear all messages from Firebase
-Future<void> clearAllFirebaseMessages() async {
-  final userId = authCtrl.appUser.value!.uid;
-  final chatsSnapshot = await _firestore.collection('chats').get();
-  for (final chatDoc in chatsSnapshot.docs) {
-    final chatIdStr = chatDoc.id;
-    final msgCol = _firestore.collection('chats').doc(chatIdStr).collection('messages');
-    final msgs = await msgCol.get();
-    for (final msg in msgs.docs) {
-      await msg.reference.delete();
+  Future<void> clearAllLocalMessages() async {
+    await LocalDb.clearAllMessages();
+    for (final list in messages.values) {
+      list.clear();
     }
-    // Reset lastMessage field
-    await _firestore.collection('chats').doc(chatIdStr).set({
-      'lastMessage': '',
-      'lastUpdated': Timestamp.now(),
-    }, SetOptions(merge: true));
+    for (final last in lastMessages.values) {
+      last.value = '';
+    }
   }
-}
 
+  /// Clear all messages from Firebase
+  Future<void> clearAllFirebaseMessages() async {
+    final userId = authCtrl.appUser.value!.uid;
+    final chatsSnapshot = await _firestore.collection('chats').get();
+    for (final chatDoc in chatsSnapshot.docs) {
+      final chatIdStr = chatDoc.id;
+      final msgCol = _firestore
+          .collection('chats')
+          .doc(chatIdStr)
+          .collection('messages');
+      final msgs = await msgCol.get();
+      for (final msg in msgs.docs) {
+        await msg.reference.delete();
+      }
+      // Reset lastMessage field
+      await _firestore.collection('chats').doc(chatIdStr).set({
+        'lastMessage': '',
+        'lastUpdated': Timestamp.now(),
+      }, SetOptions(merge: true));
+    }
+  }
+
+  /// Initialize local notifications
+  Future<void> initLocalNotifications() async {
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: androidInit);
+    await _localNoti.initialize(initSettings);
+  }
+
+  /// Show local notification for new message
+  void showNewMessageNotification(String senderName, String message) {
+    _localNoti.show(
+      0,
+      'New message from $senderName',
+      message,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'chat_channel', // channel id
+          'Chat Messages', // channel name
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
 
   @override
   void onClose() {
@@ -243,5 +276,11 @@ Future<void> clearAllFirebaseMessages() async {
     }
     _chatSubscriptions.clear();
     super.onClose();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    initLocalNotifications();
   }
 }

@@ -1,10 +1,8 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
+    // FlutterFire plugin
     id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -16,6 +14,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -23,13 +22,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID
         applicationId = "com.example.etext"
-
-        // FIX: Set minSdkVersion to 23 to satisfy plugin requirements
         minSdk = 23
-
-        // Keep other Flutter values
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -37,9 +31,13 @@ android {
 
     buildTypes {
         release {
-            // Signing config for release
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+
+    // Add desugaring dependency here
+    dependencies {
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     }
 }
 

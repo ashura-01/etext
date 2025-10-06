@@ -13,6 +13,7 @@
     <!-- Location permissions (required by many Bluetooth/Wi-Fi APIs) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- Nearby Wi-Fi (for Wi-Fi Direct / Nearby Connections on Android 12+) -->
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:required="false" />
@@ -44,7 +45,7 @@
 
 
     <application
-        android:label="etext"
+        android:label="CipherChat"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

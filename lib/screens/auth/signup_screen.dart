@@ -27,7 +27,7 @@ class SignupScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
-                  'logo.png',
+                  'assets/logo.png',
                   height: 220,
                   width: 220,
                   fit: BoxFit.cover,
@@ -38,7 +38,7 @@ class SignupScreen extends StatelessWidget {
 
               // Subtitle
               const Text(
-                "Join CipherText",
+                "Join CipherChat",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

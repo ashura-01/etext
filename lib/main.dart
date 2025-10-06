@@ -17,6 +17,17 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/main_screens/home_screen.dart';
 import 'firebase_options.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+// Call this somewhere in your app (e.g., in main() or splash screen)
+Future<void> requestNotificationPermission() async {
+  final status = await Permission.notification.request();
+  if (status.isGranted) {
+    print("Notification permission granted");
+  } else {
+    print("Notification permission denied");
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +40,9 @@ void main() async {
   Get.put(UserController());
   Get.put(ChatController());
 
+  final chatCtrl = Get.find<ChatController>();
+  chatCtrl.initLocalNotifications(); // Initialize notifications
+  requestNotificationPermission();
   runApp(const MyApp());
 }
 
@@ -43,14 +57,19 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark, // Makes text white by default
         primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: const Color.fromARGB(255, 0, 1, 3), // Background for all screens
+        scaffoldBackgroundColor: const Color.fromARGB(
+          255,
+          0,
+          1,
+          3,
+        ), // Background for all screens
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.black,
           foregroundColor: Colors.white, // AppBar text color
           elevation: 0,
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor:  Color.fromARGB(255, 142, 184, 255),
+          backgroundColor: Color.fromARGB(255, 142, 184, 255),
           foregroundColor: Color.fromARGB(255, 0, 0, 0),
         ),
         // textTheme: const TextTheme(
@@ -58,9 +77,9 @@ class MyApp extends StatelessWidget {
         // ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            foregroundColor:  const Color.fromARGB(255, 142, 184, 255),
-            backgroundColor:  const Color.fromARGB(255, 30, 33, 37)
-          )
+            foregroundColor: const Color.fromARGB(255, 142, 184, 255),
+            backgroundColor: const Color.fromARGB(255, 30, 33, 37),
+          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
