@@ -59,9 +59,7 @@ class SettingsScreen extends StatelessWidget {
     final email = auth.appUser.value?.email ?? 'Your Email';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

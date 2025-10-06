@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
+import '../services/key_service.dart';
 import '../utils/constants.dart';
 
 class AuthController extends GetxController {
@@ -17,6 +18,8 @@ class AuthController extends GetxController {
   // Loading indicator for async actions
   RxBool isLoading = false.obs;
 
+  final KeyService keyService = Get.put(KeyService());
+
   @override
   void onInit() {
     super.onInit();
@@ -27,6 +30,7 @@ class AuthController extends GetxController {
       firebaseUser.value = user;
       if (user != null) {
         await _loadAppUser(user.uid);
+        await keyService.ensureKeypairExists(user.uid); // ✅ Ensure keys exist
       } else {
         appUser.value = null;
       }
@@ -83,8 +87,12 @@ class AuthController extends GetxController {
         createdAt: Timestamp.now(),
       );
       await _firestore.collection(Collections.users).doc(newUser.uid).set(newUser.toMap());
+
       appUser.value = newUser;
       firebaseUser.value = cred.user;
+
+      // ✅ Generate & upload keypair for E2EE
+      await keyService.ensureKeypairExists(cred.user!.uid);
 
       return null;
     } on FirebaseAuthException catch (e) {
@@ -113,6 +121,10 @@ class AuthController extends GetxController {
 
       firebaseUser.value = cred.user;
       await _loadAppUser(cred.user!.uid);
+
+      // ✅ Ensure keypair exists
+      await keyService.ensureKeypairExists(cred.user!.uid);
+
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
@@ -144,7 +156,6 @@ class AuthController extends GetxController {
       if (firebaseUser.value == null) return "User not logged in";
       isLoading.value = true;
       await firebaseUser.value!.updatePassword(newPassword);
-      // Send email verification after password change
       await firebaseUser.value!.sendEmailVerification();
       return null;
     } on FirebaseAuthException catch (e) {

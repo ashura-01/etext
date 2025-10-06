@@ -13,7 +13,7 @@ class RequestsScreen extends StatelessWidget {
     final UserController uc = UserController.instance; 
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Friend Requests")),
+      // appBar: AppBar(title: const Text("Friend Requests")),
       
       // Use Obx to rebuild the widget whenever uc.friendRequests (an RxList) changes
       body: Obx(

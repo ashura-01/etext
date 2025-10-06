@@ -28,10 +28,9 @@ class _BluMessengerState extends State<BluMessenger> {
   @override
   void initState() {
     super.initState();
-    deviceName =
-        Platform.localHostname.isNotEmpty
-            ? 'Device_${Platform.localHostname}'
-            : 'Device_${DateTime.now().millisecondsSinceEpoch}';
+    deviceName = Platform.localHostname.isNotEmpty
+        ? 'Device_${Platform.localHostname}'
+        : 'Device_${DateTime.now().millisecondsSinceEpoch}';
   }
 
   Future<void> _requestPermissions() async {
@@ -219,15 +218,15 @@ class _BluMessengerState extends State<BluMessenger> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Blu Messenger"),
-        backgroundColor: const Color.fromARGB(255, 0, 12, 53),
+        title: const Text("War Mode"),
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(isAdvertising ? Icons.stop : Icons.campaign),
             tooltip: isAdvertising ? 'Stop Advertising' : 'Start Advertising',
-            onPressed:
-                () => isAdvertising ? stopAdvertising() : startAdvertising(),
+            onPressed: () =>
+                isAdvertising ? stopAdvertising() : startAdvertising(),
           ),
           IconButton(
             icon: Icon(isDiscovering ? Icons.stop_circle : Icons.search),
@@ -273,21 +272,20 @@ class _BluMessengerState extends State<BluMessenger> {
               itemBuilder: (_, i) {
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
-                  alignment:
-                      messages[i].startsWith("🔵")
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                  alignment: messages[i].startsWith("🔵")
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color:
-                          messages[i].startsWith("🔵")
-                              ? Colors.blue[100]
-                              : Colors.green[100],
+                      color: messages[i].startsWith("🔵")
+                          ? Colors.blue[100]
+                          : Colors.green[100],
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       messages[i].replaceFirst(RegExp(r'^🔵 |^🟢 '), ''),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 );
@@ -301,18 +299,36 @@ class _BluMessengerState extends State<BluMessenger> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
+                    decoration:  InputDecoration(
                       hintText: "Enter message",
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                         borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: const Color.fromARGB(255, 142, 184, 255),
+                        ), // change this to any color
+                      ),
+                      fillColor: const Color.fromARGB(255, 55, 72, 78),
+                      filled: true,
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () {
-                    _sendMessage(_controller.text.trim());
-                    _controller.clear();
-                  },
+            const SizedBox(width: 8),
+
+                CircleAvatar(
+                  backgroundColor: const Color.fromARGB(255, 0, 131, 238),
+                  radius: 29,
+                  child: IconButton(
+                    icon: const Icon(Icons.send_outlined),
+                    color: const Color.fromARGB(255, 0, 0, 0),
+                    onPressed: () {
+                      _sendMessage(_controller.text.trim());
+                      _controller.clear();
+                    },
+                  ),
                 ),
               ],
             ),

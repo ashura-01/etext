@@ -5,15 +5,17 @@ class MessageModel {
   final String receiverId;
   final String text;
   final Timestamp timestamp;
+  final String? docId; // Firestore document ID
 
   MessageModel({
     required this.senderId,
     required this.receiverId,
     required this.text,
     required this.timestamp,
+    this.docId,
   });
 
-  /// Create MessageModel from Firestore document snapshot
+  /// From Firestore document snapshot
   factory MessageModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return MessageModel(
@@ -21,20 +23,22 @@ class MessageModel {
       receiverId: data['receiverId'] ?? '',
       text: data['text'] ?? '',
       timestamp: data['timestamp'] ?? Timestamp.now(),
+      docId: doc.id,
     );
   }
 
-  /// Create MessageModel from a Map (used in sendMessage)
-  factory MessageModel.fromMap(Map<String, dynamic> map) {
+  /// From Map
+  factory MessageModel.fromMap(Map<String, dynamic> map, {String? docId}) {
     return MessageModel(
       senderId: map['senderId'] ?? '',
       receiverId: map['receiverId'] ?? '',
       text: map['text'] ?? '',
       timestamp: map['timestamp'] ?? Timestamp.now(),
+      docId: docId,
     );
   }
 
-  /// Convert MessageModel to Map (for sending to Firestore)
+  /// Convert to Map
   Map<String, dynamic> toMap() {
     return {
       'senderId': senderId,
@@ -42,5 +46,21 @@ class MessageModel {
       'text': text,
       'timestamp': timestamp,
     };
+  }
+
+  /// Copy with optional updates
+  MessageModel copyWith({
+    String? senderId,
+    String? receiverId,
+    String? text,
+    Timestamp? timestamp,
+  }) {
+    return MessageModel(
+      senderId: senderId ?? this.senderId,
+      receiverId: receiverId ?? this.receiverId,
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+      docId: docId,
+    );
   }
 }

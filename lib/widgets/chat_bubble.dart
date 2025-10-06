@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
 
 class ChatBubble extends StatelessWidget {
   final bool isMe;
@@ -16,7 +15,7 @@ class ChatBubble extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         margin: EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: isMe ? AppColors.sentBubble : AppColors.receivedBubble,
+          color: isMe ? const Color.fromARGB(255, 106, 200, 255) : const Color.fromARGB(255, 159, 205, 207),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -28,7 +27,7 @@ class ChatBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(text, style: TextStyle(fontSize: 16)),
+            Text(text, style: TextStyle(fontSize: 16, color: Colors.black)),
             SizedBox(height: 6),
             Text(time, style: TextStyle(fontSize: 11, color: Colors.black54)),
           ],
