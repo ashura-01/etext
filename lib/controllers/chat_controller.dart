@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:etext/models/user_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../models/message_model.dart';
@@ -7,6 +8,7 @@ import '../controllers/auth_controller.dart';
 import '../services/encryption_service.dart';
 import '../services/local_db.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../controllers/user_controller.dart';
 
 final FlutterLocalNotificationsPlugin _localNoti =
     FlutterLocalNotificationsPlugin();
@@ -116,8 +118,17 @@ class ChatController extends GetxController {
           chatMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
           // Update last message
+          // Update last message
           if (chatMessages.isNotEmpty) {
             lastMsg.value = chatMessages.last.text;
+
+            // 🧠 Move this friend to top of the list when a new message arrives
+            final userCtrl = Get.find<UserController>();
+            final index = userCtrl.friends.indexWhere((u) => u.uid == otherUid);
+            if (index != -1) {
+              final friend = userCtrl.friends.removeAt(index);
+              userCtrl.friends.insert(0, friend);
+            }
           }
         });
 
@@ -174,6 +185,15 @@ class ChatController extends GetxController {
       'lastMessage': encryptedText,
       'lastUpdated': Timestamp.now(),
     }, SetOptions(merge: true));
+
+    /// added by mw noww
+    // Reorder friend in list after sending a message
+    final userCtrl = Get.find<UserController>();
+    final index = userCtrl.friends.indexWhere((u) => u.uid == toUid);
+    if (index != -1) {
+      final friend = userCtrl.friends.removeAt(index);
+      userCtrl.friends.insert(0, friend);
+    }
   }
 
   /// Delete message
@@ -253,15 +273,28 @@ class ChatController extends GetxController {
   }
 
   /// Show local notification for new message
-  void showNewMessageNotification(String senderName, String message) {
+  void showNewMessageNotification(String senderId, String message) {
+    final userCtrl = Get.find<UserController>();
+
+    // Try to find sender in friends list
+    final sender = userCtrl.friends.firstWhere(
+      (u) => u.uid == senderId,
+      orElse: () => AppUser(
+        uid: senderId,
+        name: 'Unknown',
+        email: '',
+        createdAt: Timestamp.now(),
+      ),
+    );
+
     _localNoti.show(
       0,
-      'New message from $senderName',
+      'New message from ${sender.name}',
       message,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'chat_channel', // channel id
-          'Chat Messages', // channel name
+          'chat_channel',
+          'Chat Messages',
           importance: Importance.high,
           priority: Priority.high,
         ),

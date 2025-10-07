@@ -52,7 +52,10 @@ class AuthController extends GetxController {
         email: user.email ?? '',
         createdAt: Timestamp.now(),
       );
-      await _firestore.collection(Collections.users).doc(user.uid).set(appUser.value!.toMap());
+      await _firestore
+          .collection(Collections.users)
+          .doc(user.uid)
+          .set(appUser.value!.toMap());
     }
   }
 
@@ -71,7 +74,10 @@ class AuthController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
       // Update display name
       await cred.user!.updateDisplayName(name);
@@ -86,7 +92,10 @@ class AuthController extends GetxController {
         email: email,
         createdAt: Timestamp.now(),
       );
-      await _firestore.collection(Collections.users).doc(newUser.uid).set(newUser.toMap());
+      await _firestore
+          .collection(Collections.users)
+          .doc(newUser.uid)
+          .set(newUser.toMap());
 
       appUser.value = newUser;
       firebaseUser.value = cred.user;
@@ -111,7 +120,10 @@ class AuthController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
       // Check if email verified
       if (!cred.user!.emailVerified) {
@@ -174,12 +186,74 @@ class AuthController extends GetxController {
     appUser.value = null;
   }
 
-
-   Future<void> sendPasswordReset(String email) async {
+  Future<void> sendPasswordReset(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
       rethrow; // let the UI handle showing the error
+    }
+  }
+
+  /// Delete the currently logged-in account
+  Future<void> deleteAccount() async {
+    final user = firebaseUser.value;
+    final app = appUser.value;
+    if (user == null || app == null) return;
+
+    try {
+      // 1. Delete all friend connections
+      final batch = FirebaseFirestore.instance.batch();
+      final userRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(app.uid);
+
+      // Fetch friends
+      final doc = await userRef.get();
+      final friends = AppUser.fromMap(doc.data()!).friends;
+
+      for (final fUid in friends) {
+        final fRef = FirebaseFirestore.instance.collection('users').doc(fUid);
+        batch.update(fRef, {
+          'friends': FieldValue.arrayRemove([app.uid]),
+        });
+      }
+
+      // Remove friend requests sent/received
+      batch.update(userRef, {
+        'friends': FieldValue.delete(),
+        'requests': FieldValue.delete(),
+      });
+
+      // Delete user's chats
+      final chatsSnap = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('participants', arrayContains: app.uid)
+          .get();
+
+      for (final chatDoc in chatsSnap.docs) {
+        final messagesSnap = await chatDoc.reference
+            .collection('messages')
+            .get();
+        for (final msgDoc in messagesSnap.docs) {
+          batch.delete(msgDoc.reference);
+        }
+        batch.delete(chatDoc.reference);
+      }
+
+      // Delete user's public key
+      batch.update(userRef, {'publicKey': FieldValue.delete()});
+
+      await batch.commit();
+
+      // 2. Delete user in Firebase Auth
+      await user.delete();
+
+      // 3. Clear local app state
+      appUser.value = null;
+      firebaseUser.value = null;
+      Get.snackbar('Deleted', 'Your account and all data have been removed.');
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
     }
   }
 }

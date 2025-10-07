@@ -31,7 +31,9 @@ class KeyService extends GetxService {
         // Save seed for later use
         final seed = await _keyPair!.extractPrivateKeyBytes();
         await _storage.write(
-            key: _privateKeyStorageKey, value: String.fromCharCodes(seed));
+          key: _privateKeyStorageKey,
+          value: String.fromCharCodes(seed),
+        );
       }
     }
 
@@ -39,6 +41,19 @@ class KeyService extends GetxService {
     await _firestore.collection('users').doc(uid).set({
       'publicKey': _publicKey!.bytes,
     }, SetOptions(merge: true));
+  }
+
+  /// Delete local private key and remove public key from Firestore
+  Future<void> deleteKeys(String uid) async {
+    // Remove local private key
+    await _storage.delete(key: _privateKeyStorageKey);
+    _keyPair = null;
+    _publicKey = null;
+
+    // Remove public key from Firestore
+    await _firestore.collection('users').doc(uid).update({
+      'publicKey': FieldValue.delete(),
+    });
   }
 
   SimpleKeyPair get keyPair => _keyPair!;

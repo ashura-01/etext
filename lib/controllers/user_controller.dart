@@ -54,7 +54,10 @@ class UserController extends GetxController {
     final List<AppUser> requests = [];
 
     for (String uid in data.requests) {
-      final reqDoc = await _firestore.collection(Collections.users).doc(uid).get();
+      final reqDoc = await _firestore
+          .collection(Collections.users)
+          .doc(uid)
+          .get();
       if (reqDoc.exists) requests.add(AppUser.fromMap(reqDoc.data()!));
     }
 
@@ -74,7 +77,10 @@ class UserController extends GetxController {
     final List<AppUser> friendsList = [];
 
     for (String uid in data.friends) {
-      final friendDoc = await _firestore.collection(Collections.users).doc(uid).get();
+      final friendDoc = await _firestore
+          .collection(Collections.users)
+          .doc(uid)
+          .get();
       if (friendDoc.exists) friendsList.add(AppUser.fromMap(friendDoc.data()!));
     }
 
@@ -84,7 +90,7 @@ class UserController extends GetxController {
   /// Send a friend request
   Future<void> sendFriendRequest(String targetUid) async {
     await _firestore.collection(Collections.users).doc(targetUid).update({
-      'requests': FieldValue.arrayUnion([_auth.appUser.value!.uid])
+      'requests': FieldValue.arrayUnion([_auth.appUser.value!.uid]),
     });
   }
 
@@ -115,7 +121,7 @@ class UserController extends GetxController {
     final currentUid = _auth.appUser.value!.uid;
 
     await _firestore.collection(Collections.users).doc(currentUid).update({
-      'requests': FieldValue.arrayRemove([fromUid])
+      'requests': FieldValue.arrayRemove([fromUid]),
     });
 
     await fetchFriendRequests();
@@ -138,5 +144,31 @@ class UserController extends GetxController {
         .map((d) => AppUser.fromMap(d.data()))
         .where((u) => u.uid != _auth.appUser.value!.uid)
         .toList();
+  }
+
+  Future<void> deleteFriend(String friendUid) async {
+    final me = _auth.appUser.value;
+    if (me == null) return;
+
+    final batch = FirebaseFirestore.instance.batch();
+
+    final myRef = FirebaseFirestore.instance.collection('users').doc(me.uid);
+    final friendRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(friendUid);
+
+    batch.update(myRef, {
+      'friends': FieldValue.arrayRemove([friendUid]),
+    });
+    batch.update(friendRef, {
+      'friends': FieldValue.arrayRemove([me.uid]),
+    });
+
+    await batch.commit();
+
+    // ✅ Remove friend locally from the reactive friends list
+    friends.removeWhere((f) => f.uid == friendUid);
+
+    Get.snackbar('Removed', 'Friend deleted successfully');
   }
 }
